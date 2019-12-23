@@ -1,11 +1,8 @@
-define( [
-	"../core",
-	"../core/access",
-	"../var/isIE",
-	"../selector"
-], function( jQuery, access, isIE ) {
+import jQuery from "../core.js";
+import access from "../core/access.js";
+import isIE from "../var/isIE.js";
 
-"use strict";
+import "../selector.js";
 
 var rfocusable = /^(?:input|select|textarea|button)$/i,
 	rclickable = /^(?:a|area)$/i;
@@ -64,7 +61,7 @@ jQuery.extend( {
 				// correct value when it hasn't been explicitly set
 				// https://web.archive.org/web/20141116233347/http://fluidproject.org/blog/2008/01/09/getting-setting-and-removing-tabindex-values-with-javascript/
 				// Use proper attribute retrieval(#12072)
-				var tabindex = jQuery.find.attr( elem, "tabindex" );
+				var tabindex = elem.getAttribute( "tabindex" );
 
 				if ( tabindex ) {
 					return parseInt( tabindex, 10 );
@@ -135,6 +132,4 @@ jQuery.each( [
 	"contentEditable"
 ], function() {
 	jQuery.propFix[ this.toLowerCase() ] = this;
-} );
-
 } );

@@ -18,6 +18,7 @@
 		"ajaxTest": false,
 		"testIframe": false,
 		"createDashboardXML": false,
+		"createWithFriesXML": false,
 		"createXMLFragment": false,
 		"moduleTeardown": false,
 		"url": false,
@@ -61,6 +62,16 @@
 			],
 			"parserOptions": {
 				"ecmaVersion": 2015
+			}
+		},
+
+		{
+			"files": [
+				"jquery.js",
+				"data/testinit.js"
+			],
+			"parserOptions": {
+				"ecmaVersion": 2020
 			}
 		}
 	]

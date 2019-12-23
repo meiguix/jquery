@@ -503,7 +503,7 @@ QUnit.module( "ajax", {
 				}
 			),
 			request(
-				" http://otherdomain.com",
+				" https://otherdomain.com",
 				"Cross-domain url with leading space is detected as cross-domain"
 			)
 		];
@@ -804,6 +804,121 @@ QUnit.module( "ajax", {
 				assert.strictEqual( window[ "testBar" ], "bar", "Check if script src was evaluated for datatype html" );
 			}
 		};
+	} );
+
+	ajaxTest( "jQuery.ajax() - do not execute scripts from unsuccessful responses (gh-4250)", 11, function( assert ) {
+		var globalEval = jQuery.globalEval;
+
+		var failConverters = {
+			"text script": function() {
+				assert.ok( false, "No converter for unsuccessful response" );
+			}
+		};
+
+		function request( title, options ) {
+			var testMsg = title + ": expected file missing status";
+			return jQuery.extend( {
+				beforeSend: function() {
+					jQuery.globalEval = function() {
+						assert.ok( false, "Should not eval" );
+					};
+				},
+				complete: function() {
+					jQuery.globalEval = globalEval;
+				},
+				// error is the significant assertion
+				error: function( xhr ) {
+					assert.strictEqual( xhr.status, 404, testMsg );
+				},
+				success: function() {
+					assert.ok( false, "Unanticipated success" );
+				}
+			}, options );
+		}
+
+		return [
+			request(
+				"HTML reply",
+				{
+					url: url( "404.txt" )
+				}
+			),
+			request(
+				"HTML reply with dataType",
+				{
+					dataType: "script",
+					url: url( "404.txt" )
+				}
+			),
+			request(
+				"script reply",
+				{
+					url: url( "mock.php?action=errorWithScript&withScriptContentType" )
+				}
+			),
+			request(
+				"non-script reply",
+				{
+					url: url( "mock.php?action=errorWithScript" )
+				}
+			),
+			request(
+				"script reply with dataType",
+				{
+					dataType: "script",
+					url: url( "mock.php?action=errorWithScript&withScriptContentType" )
+				}
+			),
+			request(
+				"non-script reply with dataType",
+				{
+					dataType: "script",
+					url: url( "mock.php?action=errorWithScript" )
+				}
+			),
+			request(
+				"script reply with converter",
+				{
+					converters: failConverters,
+					url: url( "mock.php?action=errorWithScript&withScriptContentType" )
+				}
+			),
+			request(
+				"non-script reply with converter",
+				{
+					converters: failConverters,
+					url: url( "mock.php?action=errorWithScript" )
+				}
+			),
+			request(
+				"script reply with converter and dataType",
+				{
+					converters: failConverters,
+					dataType: "script",
+					url: url( "mock.php?action=errorWithScript&withScriptContentType" )
+				}
+			),
+			request(
+				"non-script reply with converter and dataType",
+				{
+					converters: failConverters,
+					dataType: "script",
+					url: url( "mock.php?action=errorWithScript" )
+				}
+			),
+			request(
+				"JSONP reply with dataType",
+				{
+					dataType: "jsonp",
+					url: url( "mock.php?action=errorWithScript" ),
+					beforeSend: function() {
+						jQuery.globalEval = function( response ) {
+							assert.ok( /"status": 404, "msg": "Not Found"/.test( response ), "Error object returned" );
+						};
+					}
+				}
+			)
+		];
 	} );
 
 	ajaxTest( "jQuery.ajax() - synchronous request", 1, function( assert ) {
@@ -1392,7 +1507,7 @@ QUnit.module( "ajax", {
 		return {
 
 			// see RFC 2606
-			url: "http://example.invalid",
+			url: "https://example.invalid",
 			error: function( xhr, _, e ) {
 				assert.ok( true, "file not found: " + xhr.status + " => " + e );
 			}
@@ -1401,7 +1516,7 @@ QUnit.module( "ajax", {
 
 	ajaxTest( "jQuery.ajax() - failing cross-domain", 1, function( assert ) {
 		return {
-			url: "http://" + externalHost,
+			url: "https://" + externalHost,
 			error: function( xhr, _, e ) {
 				assert.ok( true, "access denied: " + xhr.status + " => " + e );
 			}
@@ -1970,14 +2085,19 @@ if ( typeof window.ArrayBuffer === "undefined" || typeof new XMLHttpRequest().re
 		};
 	} );
 
-	testIframe(
-		"#14379 - jQuery.ajax() on unload",
-		"ajax/onunload.html",
-		function( assert, jQuery, window, document, status ) {
-			assert.expect( 1 );
-			assert.strictEqual( status, "success", "Request completed" );
-		}
-	);
+	// Chrome 78 dropped support for synchronous XHR requests inside of
+	// beforeunload, unload, pagehide, and visibilitychange event handlers.
+	// See https://bugs.chromium.org/p/chromium/issues/detail?id=952452
+	if ( !/chrome/i.test( navigator.userAgent ) ) {
+		testIframe(
+			"#14379 - jQuery.ajax() on unload",
+			"ajax/onunload.html",
+			function( assert, jQuery, window, document, status ) {
+				assert.expect( 1 );
+				assert.strictEqual( status, "success", "Request completed" );
+			}
+		);
+	}
 
 	ajaxTest( "#14683 - jQuery.ajax() - Exceptions thrown synchronously by xhr.send should be caught", 4, function( assert ) {
 		return [ {
@@ -1998,7 +2118,7 @@ if ( typeof window.ArrayBuffer === "undefined" || typeof new XMLHttpRequest().re
 				assert.strictEqual( status, "error", "proper status" );
 			}
 		}, {
-			url: "http://" + externalHost + ":80q",
+			url: "https://" + externalHost + ":80q",
 			done: function( data ) {
 				assert.ok( false, "done: " + data );
 			},

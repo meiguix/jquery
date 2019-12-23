@@ -29,7 +29,7 @@ To build jQuery, you need to have the latest Node.js/npm and git 1.7 or later. E
 
 For Windows, you have to download and install [git](https://git-scm.com/downloads) and [Node.js](https://nodejs.org/en/download/).
 
-OS X users should install [Homebrew](http://brew.sh/). Once Homebrew is installed, run `brew install git` to install git,
+macOS users should install [Homebrew](https://brew.sh/). Once Homebrew is installed, run `brew install git` to install git,
 and `brew install node` to install Node.js.
 
 Linux/BSD users should use their appropriate package managers to install git and Node.js, or build from source
@@ -39,13 +39,9 @@ if you swing that way. Easy-peasy.
 How to build your own jQuery
 ----------------------------
 
-Clone a copy of the main jQuery git repo by running:
+First, [clone the jQuery git repo](https://help.github.com/en/github/creating-cloning-and-archiving-repositories/cloning-a-repository).
 
-```bash
-git clone git://github.com/jquery/jquery.git
-```
-
-Enter the jquery directory and run the build script:
+Then, enter the jquery directory and run the build script:
 ```bash
 cd jquery && npm run build
 ```
@@ -100,12 +96,6 @@ Some example modules that can be excluded are:
 - **exports/global**: Exclude the attachment of global jQuery variables ($ and jQuery) to the window.
 - **exports/amd**: Exclude the AMD definition.
 
-As a special case, you may also replace Sizzle by using a special flag `grunt custom:-sizzle`.
-
-- **sizzle**: The Sizzle selector engine. When this module is excluded, it is replaced by a rudimentary selector engine based on the browser's `querySelectorAll` method that does not support jQuery selector extensions or enhanced semantics. See the [selector-native.js](https://github.com/jquery/jquery/blob/master/src/selector-native.js) file for details.
-
-*Note*: Excluding Sizzle will also exclude all jQuery selector extensions (such as `effects/animatedSelector` and `css/hiddenVisibleSelectors`).
-
 The build process shows a message for each dependent module it excludes or includes.
 
 ##### AMD name
@@ -156,7 +146,7 @@ Exclude a bunch of modules:
 grunt custom:-ajax,-css,-deprecated,-dimensions,-effects,-event/alias,-offset,-wrap
 ```
 
-For questions or requests regarding custom builds, please start a thread on the [Developing jQuery Core](https://forum.jquery.com/developing-jquery-core) section of the forum. Due to the combinatorics and custom nature of these builds, they are not regularly tested in jQuery's unit test process. The non-Sizzle selector engine currently does not pass unit tests because it is missing too much essential functionality.
+For questions or requests regarding custom builds, please start a thread on the [Developing jQuery Core](https://forum.jquery.com/developing-jquery-core) section of the forum. Due to the combinatorics and custom nature of these builds, they are not regularly tested in jQuery's unit test process.
 
 Running the Unit Tests
 --------------------------------------

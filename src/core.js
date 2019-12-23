@@ -1,32 +1,24 @@
-/* global Symbol */
-// Defining this global in .eslintrc.json would create a danger of using the global
-// unguarded in another place, it seems safer to define global only for this module
+import arr from "./var/arr.js";
+import getProto from "./var/getProto.js";
+import slice from "./var/slice.js";
+import flat from "./var/flat.js";
+import push from "./var/push.js";
+import indexOf from "./var/indexOf.js";
+import class2type from "./var/class2type.js";
+import toString from "./var/toString.js";
+import hasOwn from "./var/hasOwn.js";
+import fnToString from "./var/fnToString.js";
+import ObjectFunctionString from "./var/ObjectFunctionString.js";
+import support from "./var/support.js";
+import isWindow from "./var/isWindow.js";
+import DOMEval from "./core/DOMEval.js";
+import toType from "./core/toType.js";
 
-define( [
-	"./var/arr",
-	"./var/getProto",
-	"./var/slice",
-	"./var/concat",
-	"./var/push",
-	"./var/indexOf",
-	"./var/class2type",
-	"./var/toString",
-	"./var/hasOwn",
-	"./var/fnToString",
-	"./var/ObjectFunctionString",
-	"./var/trim",
-	"./var/support",
-	"./var/isWindow",
-	"./core/DOMEval",
-	"./core/toType"
-], function( arr, getProto, slice, concat, push, indexOf,
-	class2type, toString, hasOwn, fnToString, ObjectFunctionString,
-	trim, support, isWindow, DOMEval, toType ) {
+// When custom compilation is used, the version string can get large.
+// eslint-disable-next-line max-len
+var version = "@VERSION",
 
-"use strict";
-
-var
-	version = "@VERSION",
+	rhtmlSuffix = /HTML$/i,
 
 	// Define a local copy of jQuery
 	jQuery = function( selector, context ) {
@@ -100,6 +92,18 @@ jQuery.fn = jQuery.prototype = {
 		return this.eq( -1 );
 	},
 
+	even: function() {
+		return this.pushStack( jQuery.grep( this, function( _elem, i ) {
+			return ( i + 1 ) % 2;
+		} ) );
+	},
+
+	odd: function() {
+		return this.pushStack( jQuery.grep( this, function( _elem, i ) {
+			return i % 2;
+		} ) );
+	},
+
 	eq: function( i ) {
 		var len = this.length,
 			j = +i + ( i < 0 ? len : 0 );
@@ -108,13 +112,7 @@ jQuery.fn = jQuery.prototype = {
 
 	end: function() {
 		return this.prevObject || this.constructor();
-	},
-
-	// For internal use only.
-	// Behaves like an Array's method, not like a jQuery method.
-	push: push,
-	sort: arr.sort,
-	splice: arr.splice
+	}
 };
 
 jQuery.extend = jQuery.fn.extend = function() {
@@ -259,9 +257,44 @@ jQuery.extend( {
 		return obj;
 	},
 
-	trim: function( text ) {
-		return text == null ? "" : trim.call( text );
+
+	// Retrieve the text value of an array of DOM nodes
+	text: function( elem ) {
+		var node,
+			ret = "",
+			i = 0,
+			nodeType = elem.nodeType;
+
+		if ( !nodeType ) {
+
+			// If no nodeType, this is expected to be an array
+			while ( ( node = elem[ i++ ] ) ) {
+
+				// Do not traverse comment nodes
+				ret += jQuery.text( node );
+			}
+		} else if ( nodeType === 1 || nodeType === 9 || nodeType === 11 ) {
+
+			// Use textContent for elements
+			// innerText usage removed for consistency of new lines (jQuery #11153)
+			if ( typeof elem.textContent === "string" ) {
+				return elem.textContent;
+			} else {
+
+				// Traverse its children
+				for ( elem = elem.firstChild; elem; elem = elem.nextSibling ) {
+					ret += jQuery.text( elem );
+				}
+			}
+		} else if ( nodeType === 3 || nodeType === 4 ) {
+			return elem.nodeValue;
+		}
+
+		// Do not include comment or processing instruction nodes
+
+		return ret;
 	},
+
 
 	// results is for internal usage only
 	makeArray: function( arr, results ) {
@@ -283,6 +316,15 @@ jQuery.extend( {
 
 	inArray: function( elem, arr, i ) {
 		return arr == null ? -1 : indexOf.call( arr, elem, i );
+	},
+
+	isXMLDoc: function( elem ) {
+		var namespace = elem.namespaceURI,
+			docElem = ( elem.ownerDocument || elem ).documentElement;
+
+		// Assume HTML when documentElement doesn't yet exist, such as inside
+		// document fragments.
+		return !rhtmlSuffix.test( namespace || docElem && docElem.nodeName || "HTML" );
 	},
 
 	merge: function( first, second ) {
@@ -347,7 +389,7 @@ jQuery.extend( {
 		}
 
 		// Flatten any nested arrays
-		return concat.apply( [], ret );
+		return flat( ret );
 	},
 
 	// A global GUID counter for objects
@@ -381,5 +423,4 @@ function isArrayLike( obj ) {
 		typeof length === "number" && length > 0 && ( length - 1 ) in obj;
 }
 
-return jQuery;
-} );
+export default jQuery;

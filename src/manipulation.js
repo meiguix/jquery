@@ -1,41 +1,30 @@
-define( [
-	"./core",
-	"./core/isAttached",
-	"./var/concat",
-	"./var/isIE",
-	"./var/push",
-	"./core/access",
-	"./manipulation/var/rtagName",
-	"./manipulation/var/rscriptType",
-	"./manipulation/wrapMap",
-	"./manipulation/getAll",
-	"./manipulation/setGlobalEval",
-	"./manipulation/buildFragment",
+import jQuery from "./core.js";
+import isAttached from "./core/isAttached.js";
+import flat from "./var/flat.js";
+import isIE from "./var/isIE.js";
+import push from "./var/push.js";
+import access from "./core/access.js";
+import rtagName from "./manipulation/var/rtagName.js";
+import rscriptType from "./manipulation/var/rscriptType.js";
+import wrapMap from "./manipulation/wrapMap.js";
+import getAll from "./manipulation/getAll.js";
+import setGlobalEval from "./manipulation/setGlobalEval.js";
+import buildFragment from "./manipulation/buildFragment.js";
+import dataPriv from "./data/var/dataPriv.js";
+import dataUser from "./data/var/dataUser.js";
+import acceptData from "./data/var/acceptData.js";
+import DOMEval from "./core/DOMEval.js";
+import nodeName from "./core/nodeName.js";
 
-	"./data/var/dataPriv",
-	"./data/var/dataUser",
-	"./data/var/acceptData",
-	"./core/DOMEval",
-	"./core/nodeName",
-
-	"./core/init",
-	"./traversing",
-	"./selector",
-	"./event"
-], function( jQuery, isAttached, concat, isIE, push, access, rtagName,
-	rscriptType, wrapMap, getAll, setGlobalEval, buildFragment,
-	dataPriv, dataUser, acceptData, DOMEval, nodeName ) {
-
-"use strict";
+import "./core/init.js";
+import "./traversing.js";
+import "./selector.js";
+import "./event.js";
 
 var
 
-	/* eslint-disable max-len */
-
 	// See https://github.com/eslint/eslint/issues/3229
 	rxhtmlTag = /<(?!area|br|col|embed|hr|img|input|link|meta|param)(([a-z][^\/\0>\x20\t\r\n\f]*)[^>]*)\/>/gi,
-
-	/* eslint-enable */
 
 	// Support: IE <=10 - 11+, Edge 12 - 13 only
 	// In IE/Edge using regex groups here causes severe slowdowns.
@@ -107,7 +96,7 @@ function cloneCopyEvent( src, dest ) {
 function domManip( collection, args, callback, ignored ) {
 
 	// Flatten any nested arrays
-	args = concat.apply( [], args );
+	args = flat( args );
 
 	var fragment, first, scripts, hasScripts, node, doc,
 		i = 0,
@@ -223,7 +212,8 @@ jQuery.extend( {
 		if ( isIE && ( elem.nodeType === 1 || elem.nodeType === 11 ) &&
 				!jQuery.isXMLDoc( elem ) ) {
 
-			// We eschew Sizzle here for performance reasons: https://jsperf.com/getall-vs-sizzle/2
+			// We eschew jQuery#find here for performance reasons:
+			// https://jsperf.com/getall-vs-sizzle/2
 			destElements = getAll( clone );
 			srcElements = getAll( elem );
 
@@ -232,7 +222,7 @@ jQuery.extend( {
 				// Support: IE <=11+
 				// IE fails to set the defaultValue to the correct value when
 				// cloning textareas.
-				if ( destElements[ i ].nodeName.toLowerCase() === "textarea" ) {
+				if ( nodeName( destElements[ i ], "textarea" ) ) {
 					destElements[ i ].defaultValue = srcElements[ i ].defaultValue;
 				}
 			}
@@ -461,5 +451,4 @@ jQuery.each( {
 	};
 } );
 
-return jQuery;
-} );
+export default jQuery;

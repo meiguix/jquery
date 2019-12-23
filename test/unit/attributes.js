@@ -488,29 +488,6 @@ QUnit.test( "attr(non-ASCII)", function( assert ) {
 	assert.equal( $div.attr( "AØC" ), "alpha", ".attr() exclusively lowercases characters in the range A-Z (gh-2730)" );
 } );
 
-QUnit.test( "attr - extending the boolean attrHandle", function( assert ) {
-	assert.expect( 1 );
-	var called = false,
-		origAttrHandleHadChecked = "checked" in jQuery.expr.attrHandle,
-		origAttrHandleChecked = jQuery.expr.attrHandle.checked,
-		_handle = origAttrHandleChecked || $.noop;
-	jQuery.expr.attrHandle.checked = function() {
-		called = true;
-		_handle.apply( this, arguments );
-	};
-	jQuery( "#qunit-fixture input" ).attr( "checked" );
-	called = false;
-	jQuery( "#qunit-fixture input" ).attr( "checked" );
-	assert.ok( called, "The boolean attrHandle does not drop custom attrHandles" );
-
-	if ( origAttrHandleHadChecked ) {
-		jQuery.expr.attrHandle.checked = origAttrHandleChecked;
-	} else {
-		delete jQuery.expr.attrHandle.checked;
-	}
-
-} );
-
 QUnit.test( "attr(String, Object) - Loaded via XML document", function( assert ) {
 	assert.expect( 2 );
 	var xml = createDashboardXML(),
@@ -1278,7 +1255,7 @@ QUnit.test( "addClass(Array)", function( assert ) {
 } );
 
 QUnit.test( "addClass(Function) with incoming value", function( assert ) {
-	assert.expect( 52 );
+	assert.expect( 59 );
 	var pass, i,
 		div = jQuery( "#qunit-fixture div" ),
 		old = div.map( function() {
@@ -1286,10 +1263,8 @@ QUnit.test( "addClass(Function) with incoming value", function( assert ) {
 		} );
 
 	div.addClass( function( i, val ) {
-		if ( this.id !== "_firebugConsole" ) {
-			assert.equal( val, old[ i ], "Make sure the incoming value is correct." );
-			return "test";
-		}
+		assert.equal( val, old[ i ], "Make sure the incoming value is correct." );
+		return "test";
 	} );
 
 	pass = true;
@@ -1355,17 +1330,15 @@ QUnit.test( "removeClass(Array) - simple", function( assert ) {
 } );
 
 QUnit.test( "removeClass(Function) with incoming value", function( assert ) {
-	assert.expect( 52 );
+	assert.expect( 59 );
 
 	var $divs = jQuery( "#qunit-fixture div" ).addClass( "test" ), old = $divs.map( function() {
 		return jQuery( this ).attr( "class" );
 	} );
 
 	$divs.removeClass( function( i, val ) {
-		if ( this.id !== "_firebugConsole" ) {
-			assert.equal( val, old[ i ], "Make sure the incoming value is correct." );
-			return "test";
-		}
+		assert.equal( val, old[ i ], "Make sure the incoming value is correct." );
+		return "test";
 	} );
 
 	assert.ok( !$divs.is( ".test" ), "Remove Class" );
