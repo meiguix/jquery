@@ -15,7 +15,8 @@ module.exports = function( grunt ) {
 	var fs = require( "fs" ),
 		gzip = require( "gzip-js" ),
 		isTravis = process.env.TRAVIS,
-		travisBrowsers = process.env.BROWSERS && process.env.BROWSERS.split( "," );
+		travisBrowsers = process.env.BROWSERS && process.env.BROWSERS.split( "," ),
+		CLIEngine = require( "eslint" ).CLIEngine;
 
 	if ( !grunt.option( "filename" ) ) {
 		grunt.option( "filename", "jquery.js" );
@@ -24,7 +25,7 @@ module.exports = function( grunt ) {
 	grunt.initConfig( {
 		pkg: grunt.file.readJSON( "package.json" ),
 		dst: readOptionalJSON( "dist/.destination.json" ),
-		"compare_size": {
+		compare_size: {
 			files: [ "dist/jquery.js", "dist/jquery.min.js" ],
 			options: {
 				compress: {
@@ -41,7 +42,7 @@ module.exports = function( grunt ) {
 				retainLines: true,
 				plugins: [ "@babel/transform-for-of" ]
 			},
-			nodeSmokeTests: {
+			tests: {
 				files: {
 					"test/data/core/jquery-iterability-transpiled.js":
 						"test/data/core/jquery-iterability-transpiled-es6.js"
@@ -58,14 +59,37 @@ module.exports = function( grunt ) {
 
 				// Exclude specified modules if the module matching the key is removed
 				removeWith: {
-					ajax: [ "manipulation/_evalUrl", "event/ajax" ],
+					ajax: [ "manipulation/_evalUrl", "deprecated/ajax-event-alias" ],
 					callbacks: [ "deferred" ],
 					css: [ "effects", "dimensions", "offset" ],
 					"css/showHide": [ "effects" ],
 					deferred: {
 						remove: [ "ajax", "effects", "queue", "core/ready" ],
 						include: [ "core/ready-no-deferred" ]
-					}
+					},
+					event: [ "deprecated/ajax-event-alias", "deprecated/event" ]
+				}
+			}
+		},
+		npmcopy: {
+			all: {
+				options: {
+					destPrefix: "external"
+				},
+				files: {
+					"core-js-bundle/core-js-bundle.js": "core-js-bundle/minified.js",
+					"core-js-bundle/LICENSE": "core-js-bundle/LICENSE",
+
+					"npo/npo.js": "native-promise-only/lib/npo.src.js",
+
+					"qunit/qunit.js": "qunit/qunit/qunit.js",
+					"qunit/qunit.css": "qunit/qunit/qunit.css",
+					"qunit/LICENSE.txt": "qunit/LICENSE.txt",
+
+					"requirejs/require.js": "requirejs/require.js",
+
+					"sinon/sinon.js": "sinon/pkg/sinon.js",
+					"sinon/LICENSE.txt": "sinon/LICENSE"
 				}
 			}
 		},
@@ -76,18 +100,27 @@ module.exports = function( grunt ) {
 		},
 		eslint: {
 			options: {
-
-				// See https://github.com/sindresorhus/grunt-eslint/issues/119
-				quiet: true
+				maxWarnings: 0
 			},
 
 			// We have to explicitly declare "src" property otherwise "newer"
 			// task wouldn't work properly :/
 			dist: {
-				src: "dist/jquery.js"
+				src: [ "dist/jquery.js", "dist/jquery.min.js" ]
 			},
 			dev: {
-				src: [ "src/**/*.js", "Gruntfile.js", "test/**/*.js", "build/**/*.js" ]
+				src: [
+					"src/**/*.js",
+					"Gruntfile.js",
+					"test/**/*.js",
+					"build/**/*.js",
+
+					// Ignore files from .eslintignore
+					// See https://github.com/sindresorhus/grunt-eslint/issues/119
+					...new CLIEngine()
+						.getConfigForFile( "Gruntfile.js" )
+						.ignorePatterns.map( ( p ) => `!${ p }` )
+				]
 			}
 		},
 		testswarm: {
@@ -151,21 +184,38 @@ module.exports = function( grunt ) {
 				},
 				files: [
 					"test/data/jquery-1.9.1.js",
-					"node_modules/sinon/pkg/sinon.js",
-					"node_modules/native-promise-only/lib/npo.src.js",
-					"node_modules/requirejs/require.js",
+					"external/sinon/sinon.js",
+					"external/npo/npo.js",
+					"external/requirejs/require.js",
 					"test/data/testinit.js",
 
 					"test/jquery.js",
 
-					{ pattern: "dist/jquery.*", included: false, served: true },
-					{ pattern: "src/**", type: "module", included: false, served: true },
-					{ pattern: "amd/**", included: false, served: true },
-					{ pattern: "node_modules/**", included: false, served: true },
+					{
+						pattern: "dist/jquery.*",
+						included: false,
+						served: true,
+						nocache: true
+					},
+					{
+						pattern: "src/**",
+						type: "module",
+						included: false,
+						served: true,
+						nocache: true
+					},
+					{
+						pattern: "amd/**",
+						included: false,
+						served: true,
+						nocache: true
+					},
+					{ pattern: "external/**", included: false, served: true },
 					{
 						pattern: "test/**/*.@(js|css|jpg|html|xml|svg)",
 						included: false,
-						served: true
+						served: true,
+						nocache: true
 					}
 				],
 				reporters: [ "dots" ],
@@ -214,7 +264,7 @@ module.exports = function( grunt ) {
 						"test/data/jquery-1.9.1.js",
 						"test/data/testinit-jsdom.js",
 
-						// We don't support various loading methods like AMD,
+						// We don't support various loading methods like esmodules,
 						// choosing a version etc. for jsdom.
 						"dist/jquery.js",
 
@@ -273,7 +323,7 @@ module.exports = function( grunt ) {
 						"ascii_only": true
 					},
 					banner: "/*! jQuery v<%= pkg.version %> | " +
-						"(c) JS Foundation and other contributors | jquery.org/license */",
+						"(c) OpenJS Foundation and other contributors | jquery.org/license */",
 					compress: {
 						"hoist_funs": false,
 						loops: false
@@ -314,7 +364,14 @@ module.exports = function( grunt ) {
 		"karma:jsdom"
 	] );
 
+	grunt.registerTask( "test:prepare", [
+		"npmcopy",
+		"qunit_fixture",
+		"babel:tests"
+	] );
+
 	grunt.registerTask( "test", [
+		"test:prepare",
 		"test:fast",
 		"test:slow"
 	] );
@@ -336,7 +393,7 @@ module.exports = function( grunt ) {
 		"uglify",
 		"remove_map_comment",
 		"dist:*",
-		"qunit_fixture",
+		"test:prepare",
 		"eslint:dist",
 		"test:fast",
 		"compare_size"

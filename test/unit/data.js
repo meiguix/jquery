@@ -132,11 +132,6 @@ QUnit.test( "jQuery.data(div)", function( assert ) {
 	var div = document.createElement( "div" );
 
 	dataTests( div, assert );
-
-	// We stored one key in the private data
-	// assert that nothing else was put in there, and that that
-	// one stayed there.
-	assert.expectJqData( this, div, "foo" );
 } );
 
 QUnit.test( "jQuery.data({})", function( assert ) {
@@ -159,8 +154,6 @@ QUnit.test( "jQuery.data(document)", function( assert ) {
 	assert.expect( 25 );
 
 	dataTests( document, assert );
-
-	assert.expectJqData( this, document, "foo" );
 } );
 
 QUnit.test( "jQuery.data(<embed>)", function( assert ) {
@@ -427,7 +420,7 @@ QUnit.test( ".data(Object)", function( assert ) {
 	assert.expect( 4 );
 
 	var obj, jqobj,
-		div = jQuery( "<div/>" );
+		div = jQuery( "<div></div>" );
 
 	div.data( { "test": "in", "test2": "in2" } );
 	assert.equal( div.data( "test" ), "in", "Verify setting an object in data" );
@@ -554,7 +547,7 @@ QUnit.test( ".data should not miss preset data-* w/ hyphenated property names", 
 
 	assert.expect( 2 );
 
-	var div = jQuery( "<div/>", { id: "hyphened" } ).appendTo( "#qunit-fixture" ),
+	var div = jQuery( "<div></div>", { id: "hyphened" } ).appendTo( "#qunit-fixture" ),
 		test = {
 			"camelBar": "camelBar",
 			"hyphen-foo": "hyphen-foo"
@@ -571,7 +564,7 @@ QUnit.test( "jQuery.data should not miss data-* w/ hyphenated property names #14
 
 	assert.expect( 1 );
 
-	var div = jQuery( "<div/>" );
+	var div = jQuery( "<div></div>" );
 
 	div.data( "foo-bar", "baz" );
 
@@ -583,14 +576,14 @@ QUnit.test( ".data should not miss attr() set data-* with hyphenated property na
 
 	var a, b;
 
-	a = jQuery( "<div/>" ).appendTo( "#qunit-fixture" );
+	a = jQuery( "<div></div>" ).appendTo( "#qunit-fixture" );
 
 	a.attr( "data-long-param", "test" );
 	a.data( "long-param", { a: 2 } );
 
 	assert.deepEqual( a.data( "long-param" ), { a: 2 }, "data with property long-param was found, 1" );
 
-	b = jQuery( "<div/>" ).appendTo( "#qunit-fixture" );
+	b = jQuery( "<div></div>" ).appendTo( "#qunit-fixture" );
 
 	b.attr( "data-long-param", "test" );
 	b.data( "long-param" );
@@ -636,10 +629,6 @@ QUnit.test( ".data always sets data with the camelCased key (gh-2257)", function
 				key: "boolFalse",
 				value: false
 			},
-
-			// JSHint enforces double quotes,
-			// but JSON strings need double quotes to parse
-			// so we need escaped double quotes here
 			"some-json": {
 				key: "someJson",
 				value: "{ \"foo\": \"bar\" }"
@@ -666,7 +655,7 @@ QUnit.test( ".data should not strip more than one hyphen when camelCasing (gh-20
 
 QUnit.test( ".data supports interoperable hyphenated/camelCase get/set of properties with arbitrary non-null|NaN|undefined values", function( assert ) {
 
-	var div = jQuery( "<div/>", { id: "hyphened" } ).appendTo( "#qunit-fixture" ),
+	var div = jQuery( "<div></div>", { id: "hyphened" } ).appendTo( "#qunit-fixture" ),
 		datas = {
 			"non-empty": {
 				key: "nonEmpty",
@@ -700,10 +689,6 @@ QUnit.test( ".data supports interoperable hyphenated/camelCase get/set of proper
 				key: "boolFalse",
 				value: false
 			},
-
-			// JSHint enforces double quotes,
-			// but JSON strings need double quotes to parse
-			// so we need escaped double quotes here
 			"some-json": {
 				key: "someJson",
 				value: "{ \"foo\": \"bar\" }"
@@ -752,7 +737,7 @@ QUnit.test( ".data supports interoperable hyphenated/camelCase get/set of proper
 } );
 
 QUnit.test( ".data supports interoperable removal of hyphenated/camelCase properties", function( assert ) {
-	var div = jQuery( "<div/>", { id: "hyphened" } ).appendTo( "#qunit-fixture" ),
+	var div = jQuery( "<div></div>", { id: "hyphened" } ).appendTo( "#qunit-fixture" ),
 		rdashAlpha = /-([a-z])/g,
 		datas = {
 			"non-empty": "a string",
@@ -763,10 +748,6 @@ QUnit.test( ".data supports interoperable removal of hyphenated/camelCase proper
 			"an-object": {},
 			"bool-true": true,
 			"bool-false": false,
-
-			// JSHint enforces double quotes,
-			// but JSON strings need double quotes to parse
-			// so we need escaped double quotes here
 			"some-json": "{ \"foo\": \"bar\" }"
 		};
 
@@ -804,10 +785,6 @@ QUnit.test( ".data supports interoperable removal of properties SET TWICE #13850
 			"an-object": {},
 			"bool-true": true,
 			"bool-false": false,
-
-			// JSHint enforces double quotes,
-			// but JSON strings need double quotes to parse
-			// so we need escaped double quotes here
 			"some-json": "{ \"foo\": \"bar\" }"
 		};
 
@@ -959,7 +936,7 @@ QUnit.test( "Check that the expando is removed when there's no more data", funct
 	assert.expect( 2 );
 
 	var key,
-		div = jQuery( "<div/>" );
+		div = jQuery( "<div></div>" );
 	div.data( "some", "data" );
 	assert.equal( div.data( "some" ), "data", "Data is added" );
 	div.removeData( "some" );
@@ -993,7 +970,7 @@ QUnit.test( ".data(prop) does not create expando", function( assert ) {
 	assert.expect( 1 );
 
 	var key,
-		div = jQuery( "<div/>" );
+		div = jQuery( "<div></div>" );
 
 	div.data( "foo" );
 	assert.equal( jQuery.hasData( div[ 0 ] ), false, "No data exists after access" );
@@ -1004,4 +981,19 @@ QUnit.test( ".data(prop) does not create expando", function( assert ) {
 			assert.ok( false, "Expando was created on access" );
 		}
 	}
+} );
+
+QUnit.test( "keys matching Object.prototype properties  (gh-3256)", function( assert ) {
+	assert.expect( 2 );
+
+	var div = jQuery( "<div></div>" );
+
+	assert.strictEqual( div.data( "hasOwnProperty" ), undefined,
+		"hasOwnProperty not matched (before forced data creation)" );
+
+	// Force the creation of a data object for this element.
+	div.data( { foo: "bar" } );
+
+	assert.strictEqual( div.data( "hasOwnProperty" ), undefined,
+		"hasOwnProperty not matched (after forced data creation)" );
 } );

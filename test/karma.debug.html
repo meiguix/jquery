@@ -5,7 +5,7 @@
 	<title>DEBUG</title>
 	<meta charset="utf-8">
 	<!-- Karma serves this page from /context.html. Other files are served from /base -->
-	<link rel="stylesheet" href="/base/node_modules/qunit/qunit/qunit.css" />
+	<link rel="stylesheet" href="/base/external/qunit/qunit/qunit.css" />
 	<link rel="stylesheet" href="/base/test/data/testsuite.css" />
 </head>
 <body id="body">
@@ -36,7 +36,7 @@
 			amd = QUnit.config.amd || QUnit.urlParams.amd;
 
 		// Workaround: Remove call to `window.__karma__.loaded()`
-		// in favour of calling `window.__karma__.start()` from `loadTests()`
+		// in favor of calling `window.__karma__.start()` from `loadTests()`
 		// because tests such as unit/ready.js should run after document ready.
 		if ( !esmodules && !amd ) {
 			loadTests();

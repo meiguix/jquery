@@ -11,8 +11,8 @@ import getStyles from "./css/var/getStyles.js";
 import swap from "./css/var/swap.js";
 import curCSS from "./css/curCSS.js";
 import adjustCSS from "./css/adjustCSS.js";
-import support from "./css/support.js";
 import finalPropName from "./css/finalPropName.js";
+import support from "./css/support.js";
 
 import "./core/init.js";
 import "./core/ready.js";
@@ -135,19 +135,24 @@ function getWidthOrHeight( elem, dimension, extra ) {
 	}
 
 
-	// Support: IE 9 - 11+
-	// Use offsetWidth/offsetHeight for when box sizing is unreliable.
-	// In those cases, the computed value can be trusted to be border-box.
-	if ( ( isIE && isBorderBox ||
-
-		// Support: IE 10 - 11+, Edge 15 - 18+
-		// IE/Edge misreport `getComputedStyle` of table rows with width/height
-		// set in CSS while `offset*` properties report correct values.
-		!support.reliableTrDimensions() && nodeName( elem, "tr" ) ||
+	if ( (
 
 		// Fall back to offsetWidth/offsetHeight when value is "auto"
 		// This happens for inline elements with no explicit setting (gh-3571)
-		val === "auto" ) &&
+		val === "auto" ||
+
+		// Support: IE 9 - 11+
+		// Use offsetWidth/offsetHeight for when box sizing is unreliable.
+		// In those cases, the computed value can be trusted to be border-box.
+		( isIE && isBorderBox ) ||
+
+		// Support: IE 10 - 11+
+		// IE misreports `getComputedStyle` of table rows with width/height
+		// set in CSS while `offset*` properties report correct values.
+		// Support: Firefox 70+
+		// Firefox includes border widths
+		// in computed dimensions for table rows. (gh-4529)
+		( !support.reliableTrDimensions() && nodeName( elem, "tr" ) ) ) &&
 
 		// Make sure the element is visible & connected
 		elem.getClientRects().length ) {
@@ -185,18 +190,7 @@ jQuery.extend( {
 
 	// Add in style property hooks for overriding the default
 	// behavior of getting and setting a style property
-	cssHooks: {
-		opacity: {
-			get: function( elem, computed ) {
-				if ( computed ) {
-
-					// We should always get a number back from opacity
-					var ret = curCSS( elem, "opacity" );
-					return ret === "" ? "1" : ret;
-				}
-			}
-		}
-	},
+	cssHooks: {},
 
 	// Get and set the style property on a DOM Node
 	style: function( elem, name, value, extra ) {
@@ -331,10 +325,10 @@ jQuery.each( [ "height", "width" ], function( _i, dimension ) {
 					// Running getBoundingClientRect on a disconnected node
 					// in IE throws an error.
 					( !elem.getClientRects().length || !elem.getBoundingClientRect().width ) ?
-						swap( elem, cssShow, function() {
-							return getWidthOrHeight( elem, dimension, extra );
-						} ) :
-						getWidthOrHeight( elem, dimension, extra );
+					swap( elem, cssShow, function() {
+						return getWidthOrHeight( elem, dimension, extra );
+					} ) :
+					getWidthOrHeight( elem, dimension, extra );
 			}
 		},
 

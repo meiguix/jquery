@@ -23,9 +23,9 @@ QUnit.test( "jQuery()", function( assert ) {
 
 	var elem, i,
 		obj = jQuery( "div" ),
-		code = jQuery( "<code/>" ),
+		code = jQuery( "<code></code>" ),
 		img = jQuery( "<img/>" ),
-		div = jQuery( "<div/><hr/><code/><b/>" ),
+		div = jQuery( "<div></div><hr/><code></code><b/>" ),
 		exec = false,
 		expected = 23,
 		attrObj = {
@@ -113,7 +113,7 @@ QUnit.test( "jQuery()", function( assert ) {
 	elem = jQuery( "\n\n<em>world</em>" )[ 0 ];
 	assert.equal( elem.nodeName.toLowerCase(), "em", "leading newlines" );
 
-	elem = jQuery( "<div/>", attrObj );
+	elem = jQuery( "<div></div>", attrObj );
 
 	if ( jQuery.fn.width ) {
 		assert.equal( elem[ 0 ].style.width, "10px", "jQuery() quick setter width" );
@@ -196,6 +196,19 @@ QUnit.test( "globalEval execution after script injection (#7862)", function( ass
 	jQuery.globalEval( "var strictEvalTest = " + Date.now() + ";" );
 	assert.ok( window.strictEvalTest - now < 500, "Code executed synchronously" );
 } );
+
+testIframe(
+	"globalEval with custom document context",
+	"core/globaleval-context.html",
+	function( assert, framejQuery, frameWindow, frameDocument ) {
+		assert.expect( 2 );
+
+		jQuery.globalEval( "window.scriptTest = true;", {}, frameDocument );
+		assert.ok( !window.scriptTest, "script executed in iframe context" );
+		assert.ok( frameWindow.scriptTest, "script executed in iframe context" );
+	}
+);
+
 
 QUnit.test( "noConflict", function( assert ) {
 	assert.expect( 7 );
@@ -404,6 +417,16 @@ QUnit.test( "isXMLDoc - XML", function( assert ) {
 	assert.ok( jQuery.isXMLDoc( jQuery( "desc", svg )[ 0 ] ), "XML desc Element" );
 } );
 
+QUnit.test( "isXMLDoc - falsy", function( assert ) {
+	assert.expect( 5 );
+
+	assert.strictEqual( jQuery.isXMLDoc( undefined ), false, "undefined" );
+	assert.strictEqual( jQuery.isXMLDoc( null ), false, "null" );
+	assert.strictEqual( jQuery.isXMLDoc( false ), false, "false" );
+	assert.strictEqual( jQuery.isXMLDoc( 0 ), false, "0" );
+	assert.strictEqual( jQuery.isXMLDoc( "" ), false, "\"\"" );
+} );
+
 QUnit.test( "XSS via location.hash", function( assert ) {
 	var done = assert.async();
 	assert.expect( 1 );
@@ -445,7 +468,7 @@ QUnit.test( "jQuery('html')", function( assert ) {
 
 	assert.ok( jQuery( "<link rel='stylesheet'/>" )[ 0 ], "Creating a link" );
 
-	assert.ok( !jQuery( "<script/>" )[ 0 ].parentNode, "Create a script" );
+	assert.ok( !jQuery( "<script></script>" )[ 0 ].parentNode, "Create a script" );
 
 	assert.ok( jQuery( "<input/>" ).attr( "type", "hidden" ), "Create an input and set the type." );
 
@@ -513,8 +536,8 @@ QUnit.test( "jQuery('massive html #7990')", function( assert ) {
 QUnit.test( "jQuery('html', context)", function( assert ) {
 	assert.expect( 1 );
 
-	var $div = jQuery( "<div/>" )[ 0 ],
-		$span = jQuery( "<span/>", $div );
+	var $div = jQuery( "<div></div>" )[ 0 ],
+		$span = jQuery( "<span></span>", $div );
 	assert.equal( $span.length, 1, "verify a span created with a div context works, #1763" );
 } );
 
@@ -788,15 +811,15 @@ QUnit.test( "jQuery.map", function( assert ) {
 	assert.equal( result.length, 3, "Array flatten only one level down" );
 	assert.ok( Array.isArray( result[ 0 ] ), "Array flatten only one level down" );
 
-	// Support: IE 11+, Edge 18+
-	// Skip the test in browsers without Array#flat.
-	if ( Array.prototype.flat ) {
+	// Support: IE 11+
+	// IE doesn't have Array#flat so it'd fail the test.
+	if ( !QUnit.isIE ) {
 		result = jQuery.map( Array( 300000 ), function( v, k ) {
 			return k;
 		} );
 		assert.equal( result.length, 300000, "Able to map 300000 records without any problems (#4320)" );
 	} else {
-		assert.ok( "skip", "Array#flat doesn't supported on all browsers" );
+		assert.ok( "skip", "Array#flat isn't supported in IE" );
 	}
 } );
 
@@ -1342,7 +1365,7 @@ QUnit.test( "jQuery.parseHTML", function( assert ) {
 	assert.equal( jQuery.parseHTML( "text" )[ 0 ].nodeType, 3, "Parsing text returns a text node" );
 	assert.equal( jQuery.parseHTML( "\t<div></div>" )[ 0 ].nodeValue, "\t", "Preserve leading whitespace" );
 
-	assert.equal( jQuery.parseHTML( " <div/> " )[ 0 ].nodeType, 3, "Leading spaces are treated as text nodes (#11290)" );
+	assert.equal( jQuery.parseHTML( " <div></div> " )[ 0 ].nodeType, 3, "Leading spaces are treated as text nodes (#11290)" );
 
 	html = jQuery.parseHTML( "<div>test div</div>" );
 
@@ -1395,9 +1418,9 @@ QUnit.test( "jQuery.parseXML", function( assert ) {
 	}
 	try {
 		xml = jQuery.parseXML( "<p>Not a <<b>well-formed</b> xml string</p>" );
-		assert.ok( false, "invalid xml not detected" );
+		assert.ok( false, "invalid XML not detected" );
 	} catch ( e ) {
-		assert.strictEqual( e.message, "Invalid XML: <p>Not a <<b>well-formed</b> xml string</p>", "invalid xml detected" );
+		assert.ok( e.message.indexOf( "Invalid XML:" ) === 0, "invalid XML detected" );
 	}
 	try {
 		xml = jQuery.parseXML( "" );
@@ -1411,6 +1434,29 @@ QUnit.test( "jQuery.parseXML", function( assert ) {
 	} catch ( e ) {
 		assert.ok( false, "empty input throws exception" );
 	}
+} );
+
+// Support: IE 11+
+// IE throws an error when parsing invalid XML instead of reporting the error
+// in a `parsererror` element, skip the test there.
+QUnit.testUnlessIE( "jQuery.parseXML - error reporting", function( assert ) {
+	assert.expect( 2 );
+
+	var errorArg, lineMatch, line, columnMatch, column;
+
+	sinon.stub( jQuery, "error" );
+
+	jQuery.parseXML( "<p>Not a <<b>well-formed</b> xml string</p>" );
+	errorArg = jQuery.error.firstCall.lastArg.toLowerCase();
+	console.log( "errorArg", errorArg );
+
+	lineMatch = errorArg.match( /line\s*(?:number)?\s*(\d+)/ );
+	line = lineMatch && lineMatch[ 1 ];
+	columnMatch = errorArg.match( /column\s*(\d+)/ );
+	column = columnMatch && columnMatch[ 1 ];
+
+	assert.strictEqual( line, "1", "reports error line" );
+	assert.strictEqual( column, "11", "reports error column" );
 } );
 
 testIframe(

@@ -86,9 +86,8 @@ Some example modules that can be excluded are:
 - **deprecated**: Methods documented as deprecated but not yet removed.
 - **dimensions**: The `.width()` and `.height()` methods, including `inner-` and `outer-` variations.
 - **effects**: The `.animate()` method and its shorthands such as `.slideUp()` or `.hide("slow")`.
-- **event**: The `.on()` and `.off()` methods and all event functionality. Also removes `event/alias`.
-- **event/alias**: All event attaching/triggering shorthands like `.click()` or `.mouseover()`.
-- **event/trigger**: The `.trigger()` and `.triggerHandler()` methods. Used by the **alias** module.
+- **event**: The `.on()` and `.off()` methods and all event functionality.
+- **event/trigger**: The `.trigger()` and `.triggerHandler()` methods.
 - **offset**: The `.offset()`, `.position()`, `.offsetParent()`, `.scrollLeft()`, and `.scrollTop()` methods.
 - **wrap**: The `.wrap()`, `.wrapAll()`, `.wrapInner()`, and `.unwrap()` methods.
 - **core/ready**: Exclude the ready module if you place your scripts at the end of the body. Any ready callbacks bound with `jQuery()` will simply be called immediately. However, `jQuery(document).ready()` will not be a function and `.on("ready", ...)` or similar will not be triggered.
@@ -143,7 +142,12 @@ grunt custom:-css
 Exclude a bunch of modules:
 
 ```bash
-grunt custom:-ajax,-css,-deprecated,-dimensions,-effects,-event/alias,-offset,-wrap
+grunt custom:-ajax/jsonp,-css,-deprecated,-dimensions,-effects,-offset,-wrap
+```
+
+There is also a special alias to generate a build with the same configuration as the official jQuery Slim build is generated:
+```bash
+grunt custom:slim
 ```
 
 For questions or requests regarding custom builds, please start a thread on the [Developing jQuery Core](https://forum.jquery.com/developing-jquery-core) section of the forum. Due to the combinatorics and custom nature of these builds, they are not regularly tested in jQuery's unit test process.
@@ -212,7 +216,7 @@ As the source code is handled by the Git version control system, it's useful to 
 If you want to purge your working directory back to the status of upstream, the following commands can be used (remember everything you've worked on is gone after these):
 
 ```bash
-git reset --hard upstream/master
+git reset --hard upstream/main
 git clean -fdx
 ```
 
@@ -270,7 +274,7 @@ throws( block, [expected], [message] );
 ```
 
 
-Test Suite Convenience Methods Reference (See [test/data/testinit.js](https://github.com/jquery/jquery/blob/master/test/data/testinit.js))
+Test Suite Convenience Methods Reference (See [test/data/testinit.js](https://github.com/jquery/jquery/blob/main/test/data/testinit.js))
 ------------------------------
 
 ### Returns an array of elements with the given IDs ###

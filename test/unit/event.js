@@ -153,7 +153,7 @@ QUnit.test( "on(), multiple events at once and namespaces", function( assert ) {
 	var cur, div,
 		obj = {};
 
-	div = jQuery( "<div/>" ).on( "focusin.a", function( e ) {
+	div = jQuery( "<div></div>" ).on( "focusin.a", function( e ) {
 		assert.equal( e.type, cur, "Verify right single event was fired." );
 	} );
 
@@ -163,7 +163,7 @@ QUnit.test( "on(), multiple events at once and namespaces", function( assert ) {
 	// manually clean up detached elements
 	div.remove();
 
-	div = jQuery( "<div/>" ).on( "click mouseover", obj, function( e ) {
+	div = jQuery( "<div></div>" ).on( "click mouseover", obj, function( e ) {
 		assert.equal( e.type, cur, "Verify right multi event was fired." );
 		assert.equal( e.data, obj, "Make sure the data came in correctly." );
 	} );
@@ -177,7 +177,7 @@ QUnit.test( "on(), multiple events at once and namespaces", function( assert ) {
 	// manually clean up detached elements
 	div.remove();
 
-	div = jQuery( "<div/>" ).on( "focusin.a focusout.b", function( e ) {
+	div = jQuery( "<div></div>" ).on( "focusin.a focusout.b", function( e ) {
 		assert.equal( e.type, cur, "Verify right multi event was fired." );
 	} );
 
@@ -195,7 +195,7 @@ QUnit.test( "on(), namespace with special add", function( assert ) {
 	assert.expect( 27 );
 
 	var i = 0,
-		div = jQuery( "<div/>" ).appendTo( "#qunit-fixture" ).on( "test", function() {
+		div = jQuery( "<div></div>" ).appendTo( "#qunit-fixture" ).on( "test", function() {
 			assert.ok( true, "Test event fired." );
 		} );
 
@@ -244,7 +244,7 @@ QUnit.test( "on(), namespace with special add", function( assert ) {
 	// Should trigger 4
 	div.off( "test" );
 
-	div = jQuery( "<div/>" ).on( "test", function() {
+	div = jQuery( "<div></div>" ).on( "test", function() {
 		assert.ok( true, "Test event fired." );
 	} );
 
@@ -876,7 +876,7 @@ QUnit.test( "mouseover triggers mouseenter", function( assert ) {
 	assert.expect( 1 );
 
 	var count = 0,
-		elem = jQuery( "<a />" );
+		elem = jQuery( "<a></a>" );
 	elem.on( "mouseenter", function() {
 		count++;
 	} );
@@ -890,7 +890,7 @@ QUnit.test( "pointerover triggers pointerenter", function( assert ) {
 	assert.expect( 1 );
 
 	var count = 0,
-		elem = jQuery( "<a />" );
+		elem = jQuery( "<a></a>" );
 	elem.on( "pointerenter", function() {
 		count++;
 	} );
@@ -1075,7 +1075,7 @@ QUnit.test( "submit event bubbles on copied forms (#11649)", function( assert ) 
 	var $formByClone, $formByHTML,
 		$testForm = jQuery( "#testForm" ),
 		$fixture = jQuery( "#qunit-fixture" ),
-		$wrapperDiv = jQuery( "<div/>" ).appendTo( $fixture );
+		$wrapperDiv = jQuery( "<div></div>" ).appendTo( $fixture );
 
 	function noSubmit( e ) {
 		e.preventDefault();
@@ -1111,7 +1111,7 @@ QUnit.test( "change event bubbles on copied forms (#11796)", function( assert ) 
 	var $formByClone, $formByHTML,
 		$form = jQuery( "#form" ),
 		$fixture = jQuery( "#qunit-fixture" ),
-		$wrapperDiv = jQuery( "<div/>" ).appendTo( $fixture );
+		$wrapperDiv = jQuery( "<div></div>" ).appendTo( $fixture );
 
 	function delegatedChange() {
 		assert.ok( true, "Make sure change event bubbles up." );
@@ -1141,7 +1141,7 @@ QUnit.test( "trigger(eventObject, [data], [fn])", function( assert ) {
 	assert.expect( 28 );
 
 	var event,
-		$parent = jQuery( "<div id='par' />" ).appendTo( "body" ),
+		$parent = jQuery( "<div id='par'></div>" ).appendTo( "body" ),
 		$child = jQuery( "<p id='child'>foo</p>" ).appendTo( $parent );
 
 	$parent.get( 0 ).style.display = "none";
@@ -1317,7 +1317,7 @@ QUnit.test( "Delegated events with malformed selectors (gh-3071)", function( ass
 		jQuery( "#foo" ).on( "click", "nonexistent:not", function() {} );
 	}, "short-circuitable malformed selector throws on attach" );
 
-	jQuery( "#foo > :first-child" ).click();
+	jQuery( "#foo > :first-child" ).trigger( "click" );
 	assert.ok( true, "malformed selector does not throw on event" );
 } );
 
@@ -1794,6 +1794,49 @@ QUnit.test( "jQuery.off using dispatched jQuery.Event", function( assert ) {
 		} )
 		.find( "a" ).trigger( "click" ).trigger( "click" ).end()
 		.remove();
+} );
+
+QUnit.test( "events with type matching an Object.prototype property (gh-3256)", function( assert ) {
+	assert.expect( 1 );
+
+	var elem = jQuery( "<div></div>" ),
+		eventFired = false;
+
+	elem.appendTo( "#qunit-fixture" );
+
+	try {
+		elem
+			.one( "hasOwnProperty", function() {
+				eventFired = true;
+			} )
+			.trigger( "hasOwnProperty" );
+	} finally {
+		assert.strictEqual( eventFired, true, "trigger fired without crashing" );
+	}
+} );
+
+QUnit.test( "events with type matching an Object.prototype property, cloned element (gh-3256)",
+	function( assert ) {
+	assert.expect( 1 );
+
+	var elem = jQuery( "<div></div>" ),
+		eventFired = false;
+
+	elem.appendTo( "#qunit-fixture" );
+
+	try {
+		// Make sure the original element has some event data.
+		elem.on( "click", function() {} );
+
+		elem
+			.clone( true )
+			.one( "hasOwnProperty", function() {
+				eventFired = true;
+			} )
+			.trigger( "hasOwnProperty" );
+	} finally {
+		assert.strictEqual( eventFired, true, "trigger fired without crashing" );
+	}
 } );
 
 // selector-native does not support scope-fixing in delegation
@@ -2495,7 +2538,7 @@ QUnit.test( "drag/drop events copy mouse-related event properties (gh-1925, gh-2
 
 	fireNative( $fixture[ 0 ], "drop" );
 
-	$fixture.unbind( "dragmove drop" ).remove();
+	$fixture.off( "dragmove drop" ).remove();
 } );
 
 QUnit.test( "focusin using non-element targets", function( assert ) {
@@ -2517,30 +2560,102 @@ testIframe(
 	function( assert, framejQuery, frameWin, frameDoc ) {
 		assert.expect( 1 );
 
-		var input = jQuery( frameDoc ).find( "#frame-input" );
+		var done = assert.async(),
+			focus = false,
+			input = jQuery( frameDoc ).find( "#frame-input" );
 
 		// Create a focusin handler on the parent; shouldn't affect the iframe's fate
 		jQuery( "body" ).on( "focusin.iframeTest", function() {
-			assert.ok( false, "fired a focusin event in the parent document" );
+
+			// Support: IE 9 - 11+
+			// IE does propagate the event to the parent document. In this test
+			// we mainly care about the inner element so we'll just skip this one
+			// assertion in IE.
+			if ( !document.documentMode ) {
+				assert.ok( false, "fired a focusin event in the parent document" );
+			}
 		} );
 
 		input.on( "focusin", function() {
+			focus = true;
 			assert.ok( true, "fired a focusin event in the iframe" );
 		} );
 
 		// Avoid a native event; Chrome can't force focus to another frame
-		input.trigger( "focusin" );
-
-		// Must manually remove handler to avoid leaks in our data store
-		input.remove();
-
-		// Be sure it was removed; nothing should happen
-		input.trigger( "focusin" );
+		input[ 0 ].focus();
 
 		// Remove body handler manually since it's outside the fixture
 		jQuery( "body" ).off( "focusin.iframeTest" );
+
+		setTimeout( function() {
+
+			// DOM focus is unreliable in TestSwarm
+			if ( QUnit.isSwarm && !focus ) {
+				assert.ok( true, "GAP: Could not observe focus change" );
+			}
+
+			done();
+		}, 50 );
 	}
 );
+
+QUnit.test( "focusin on document & window", function( assert ) {
+	assert.expect( 1 );
+
+	var counter = 0,
+		input = jQuery( "<input />" );
+
+	function increment() {
+		counter++;
+	}
+
+	input.appendTo( "#qunit-fixture" );
+
+	input[ 0 ].focus();
+
+	jQuery( window ).on( "focusout", increment );
+	jQuery( document ).on( "focusout", increment );
+
+	input[ 0 ].blur();
+
+	// DOM focus is unreliable in TestSwarm
+	if ( QUnit.isSwarm && counter === 0 ) {
+		assert.ok( true, "GAP: Could not observe focus change" );
+	}
+
+	assert.strictEqual( counter, 2,
+		"focusout handlers on document/window fired once only" );
+
+	jQuery( window ).off( "focusout", increment );
+	jQuery( document ).off( "focusout", increment );
+} );
+
+QUnit.test( "element removed during focusout (gh-4417)", function( assert ) {
+	assert.expect( 1 );
+
+	var button = jQuery( "<button>Click me</button>" );
+
+	button.appendTo( "#qunit-fixture" );
+
+	button.on( "click", function() {
+		button.trigger( "blur" );
+		assert.ok( true, "Removing the element didn't crash" );
+	} );
+
+	// Support: Chrome 86+
+	// In Chrome, if an element having a focusout handler is blurred by
+	// clicking outside of it, it invokes the handler synchronously. However,
+	// if the click happens programmatically, the invocation is asynchronous.
+	// As we have no way to simulate real user input in unit tests, simulate
+	// this behavior by calling `jQuery.cleanData` & removing the element using
+	// native APIs.
+	button[ 0 ].blur = function() {
+		jQuery.cleanData( [ this ] );
+		this.parentNode.removeChild( this );
+	};
+
+	button[ 0 ].click();
+} );
 
 testIframe(
 	"jQuery.ready promise",
@@ -2548,7 +2663,8 @@ testIframe(
 	function( assert, jQuery, window, document, isOk ) {
 		assert.expect( 1 );
 		assert.ok( isOk, "$.when( $.ready ) works" );
-	}
+	},
+	jQuery.when ? QUnit.test : QUnit.skip
 );
 
 // need PHP here to make the incepted IFRAME hang
@@ -2744,7 +2860,7 @@ QUnit.test( ".off() removes the expando when there's no more data", function( as
 	assert.expect( 2 );
 
 	var key,
-		div = jQuery( "<div/>" ).appendTo( "#qunit-fixture" );
+		div = jQuery( "<div></div>" ).appendTo( "#qunit-fixture" );
 
 	div.on( "click", false );
 	div.on( "custom", function() {
@@ -3173,6 +3289,56 @@ QUnit.test( "native-backed events preserve trigger data (gh-1741, gh-4139)", fun
 			done();
 		}, 50 );
 	}, 50 );
+} );
+
+QUnit.test( "focus change during a focus handler (gh-4382)", function( assert ) {
+	assert.expect( 2 );
+
+	var done = assert.async(),
+		select = jQuery( "<select><option selected='selected'>A</option></select>" ),
+		button = jQuery( "<button>Focus target</button>" );
+
+	jQuery( "#qunit-fixture" )
+		.append( select )
+		.append( button );
+
+	select.on( "focus", function() {
+		button.trigger( "focus" );
+	} );
+
+	jQuery( document ).on( "focusin.focusTests", function( ev ) {
+		// Support: IE 11+
+		// In IE focus is async so focusin on document is fired multiple times,
+		// for each of the elements. In other browsers it's fired just once, for
+		// the last one.
+		if ( ev.target === button[ 0 ] ) {
+			assert.ok( true, "focusin propagated to document from the button" );
+		}
+	} );
+
+	select.trigger( "focus" );
+
+	setTimeout( function() {
+		assert.strictEqual( document.activeElement, button[ 0 ], "Focus redirect worked" );
+		jQuery( document ).off( ".focusTests" );
+		done();
+	} );
+} );
+
+QUnit.test( "trigger(focus) works after .on(focus).off(focus) (gh-4867)", function( assert ) {
+	assert.expect( 1 );
+
+	var input = jQuery( "<input />" );
+
+	input.appendTo( "#qunit-fixture" );
+
+	input
+		.on( "focus", function() {} )
+		.off( "focus" );
+
+	input.trigger( "focus" );
+
+	assert.equal( document.activeElement, input[ 0 ], "input has focus" );
 } );
 
 // TODO replace with an adaptation of

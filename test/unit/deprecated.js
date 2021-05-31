@@ -1,7 +1,7 @@
 QUnit.module( "deprecated", { afterEach: moduleTeardown } );
 
 
-QUnit.test( "bind/unbind", function( assert ) {
+QUnit[ jQuery.fn.bind ? "test" : "skip" ]( "bind/unbind", function( assert ) {
 	assert.expect( 4 );
 
 	var markup = jQuery(
@@ -22,7 +22,7 @@ QUnit.test( "bind/unbind", function( assert ) {
 		.remove();
 } );
 
-QUnit.test( "delegate/undelegate", function( assert ) {
+QUnit[ jQuery.fn.delegate ? "test" : "skip" ]( "delegate/undelegate", function( assert ) {
 	assert.expect( 2 );
 
 	var markup = jQuery(
@@ -95,10 +95,49 @@ QUnit[ jQuery.fn.click ? "test" : "skip" ]( "trigger() shortcuts", function( ass
 	assert.equal( clickCounter, 1, "Check that click, triggers onclick event handler on an a tag also" );
 } );
 
+if ( jQuery.ajax && jQuery.fn.ajaxSend ) {
+	ajaxTest( "jQuery.ajax() - events with context", 12, function( assert ) {
+		var context = document.createElement( "div" );
+
+		function event( e ) {
+			assert.equal( this, context, e.type );
+		}
+
+		function callback( msg ) {
+			return function() {
+				assert.equal( this, context, "context is preserved on callback " + msg );
+			};
+		}
+
+		return {
+			setup: function() {
+				jQuery( context ).appendTo( "#foo" )
+					.ajaxSend( event )
+					.ajaxComplete( event )
+					.ajaxError( event )
+					.ajaxSuccess( event );
+			},
+			requests: [ {
+				url: url( "name.html" ),
+				context: context,
+				beforeSend: callback( "beforeSend" ),
+				success: callback( "success" ),
+				complete: callback( "complete" )
+			}, {
+				url: url( "404.txt" ),
+				context: context,
+				beforeSend: callback( "beforeSend" ),
+				error: callback( "error" ),
+				complete: callback( "complete" )
+			} ]
+		};
+	} );
+}
+
 QUnit[ jQuery.fn.click ? "test" : "skip" ]( "Event aliases", function( assert ) {
 
 	// Explicitly skipping focus/blur events due to their flakiness
-	var	$elem = jQuery( "<div />" ).appendTo( "#qunit-fixture" ),
+	var	$elem = jQuery( "<div></div>" ).appendTo( "#qunit-fixture" ),
 		aliases = ( "resize scroll click dblclick mousedown mouseup " +
 			"mousemove mouseover mouseout mouseenter mouseleave change " +
 			"select submit keydown keypress keyup contextmenu" ).split( " " );
@@ -113,7 +152,7 @@ QUnit[ jQuery.fn.click ? "test" : "skip" ]( "Event aliases", function( assert ) 
 	} );
 } );
 
-QUnit.test( "jQuery.proxy", function( assert ) {
+QUnit[ jQuery.proxy ? "test" : "skip" ]( "jQuery.proxy", function( assert ) {
 	assert.expect( 9 );
 
 	var test2, test3, test4, fn, cb,
@@ -159,26 +198,4 @@ QUnit.test( "jQuery.proxy", function( assert ) {
 	};
 	cb = jQuery.proxy( fn, null, "arg1", "arg2" );
 	cb.call( thisObject, "arg3" );
-} );
-
-QUnit.test( "trim", function( assert ) {
-	assert.expect( 13 );
-
-	var nbsp = String.fromCharCode( 160 );
-
-	assert.equal( jQuery.trim( "hello  " ), "hello", "trailing space" );
-	assert.equal( jQuery.trim( "  hello" ), "hello", "leading space" );
-	assert.equal( jQuery.trim( "  hello   " ), "hello", "space on both sides" );
-	assert.equal( jQuery.trim( "  " + nbsp + "hello  " + nbsp + " " ), "hello", "&nbsp;" );
-
-	assert.equal( jQuery.trim(), "", "Nothing in." );
-	assert.equal( jQuery.trim( undefined ), "", "Undefined" );
-	assert.equal( jQuery.trim( null ), "", "Null" );
-	assert.equal( jQuery.trim( 5 ), "5", "Number" );
-	assert.equal( jQuery.trim( false ), "false", "Boolean" );
-
-	assert.equal( jQuery.trim( " " ), "", "space should be trimmed" );
-	assert.equal( jQuery.trim( "ipad\xA0" ), "ipad", "nbsp should be trimmed" );
-	assert.equal( jQuery.trim( "\uFEFF" ), "", "zwsp should be trimmed" );
-	assert.equal( jQuery.trim( "\uFEFF \xA0! | \uFEFF" ), "! |", "leading/trailing should be trimmed" );
 } );

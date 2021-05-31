@@ -3,7 +3,7 @@
 <head>
 	<meta charset="utf-8">
 	<title>jQuery Test Suite</title>
-	<link rel="stylesheet" href="../node_modules/qunit/qunit/qunit.css" />
+	<link rel="stylesheet" href="../external/qunit/qunit.css" />
 	<link rel="stylesheet" href="data/testsuite.css" />
 
 	<!--
@@ -12,10 +12,10 @@
 	-->
 	<script src="data/jquery-1.9.1.js"></script>
 
-	<script src="../node_modules/qunit/qunit/qunit.js"></script>
-	<script src="../node_modules/sinon/pkg/sinon.js"></script>
-	<script src="../node_modules/native-promise-only/lib/npo.src.js"></script>
-	<script src="../node_modules/requirejs/require.js"></script>
+	<script src="../external/qunit/qunit.js"></script>
+	<script src="../external/sinon/sinon.js"></script>
+	<script src="../external/npo/npo.js"></script>
+	<script src="../external/requirejs/require.js"></script>
 	<!-- See testinit for the list of tests -->
 	<script src="data/testinit.js"></script>
 
@@ -35,7 +35,7 @@
 			amd = QUnit.config.amd || QUnit.urlParams.amd;
 
 		// Workaround: Remove call to `window.__karma__.loaded()`
-		// in favour of calling `window.__karma__.start()` from `loadTests()`
+		// in favor of calling `window.__karma__.start()` from `loadTests()`
 		// because tests such as unit/ready.js should run after document ready.
 		if ( !esmodules && !amd ) {
 			loadTests();
